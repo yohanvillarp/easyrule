@@ -14,15 +14,18 @@ posicionCadenaTemp=""
 
 #declaración de constantes
 TABLAS=("filter" "nat" "mangle" "raw" "security")
-COMANDOS=("-L" "-A" "-I" "-D" "-F" "-X" "-P")
+COMANDOS=("-L" "-A" "-I" "-D" "-F" "-X")
+COMANDOS_FILTER=(${COMANDOS[@]} "-P")
 
 CADENAS_FILTER=("INPUT" "OUTPUT" "FORWARD")
-CADENAS_NAT=("PREROUTING" "POSTROUTING" "OUTPUT" "FORWARD")
+CADENAS_NAT=("PREROUTING" "POSTROUTING" "OUTPUT")
 CADENAS_MANGLE=("PREROUTING" "INPUT" "FORWARD" "OUTPUT" "POSTROUTING")
 CADENAS_RAW=("PREROUTING" "OUTPUT")
 CADENAS_SECURITY=("INPUT" "FORWARD" "OUTPUT")
 
-PARAMETROS=("-s" "-d" "-p" "--dport" "--sport" "-i" "-o" "-m")
+#Separación temporal
+PARAMETROS_GENERAL=("-s" "-d" "-p" "--dport" "--sport" "-i" "-o")
+PARAMETROS=("${PARAMETROS_GENERAL[@]}" "-m")
 #Para -m
 MATCH_MODULES=("state --state" "conntrack --ctstate")
 ESTADOS_MM=("NEW" "ESTABLISHED" "RELATED" "INVALID")
@@ -89,6 +92,11 @@ verificacionGeneral(){
         posicionCadena=""
     else
         posicionCadena="$posicionCadenaTemp"
+    fi
+
+    if [ "$tabla" != "filter" ] && [ "$comando" == "-P" ]
+    then
+        comando=""
     fi
 }
 
@@ -250,7 +258,7 @@ modoVerbosoAccion(){
 }
 
 seleccionarTabla(){
-    echo "Selecciona una tabla"
+    echo -e "${COLOR_BOLD}Selecciona una tabla${COLOR_RESET}"
     echo;
     n=1
     for i in "${TABLAS[@]}"; do
@@ -277,22 +285,36 @@ seleccionarComando(){
     echo "Selecciona un comando"
     echo;
     n=1
-    for i in "${COMANDOS[@]}"; do
-        echo "$n: $i"
-        ((n+=1))
-    done
+    if [ "$tabla" == "filter" ]
+    then
+        for i in "${COMANDOS_FILTER[@]}"; do
+            echo "$n: $i"
+            ((n+=1))
+        done
+    else
+        for i in "${COMANDOS[@]}"; do
+            echo "$n: $i"
+            ((n+=1))
+        done
+    fi
+
     echo "$n: Volver"
     echo;
     echo;
     echo -n "Opcion: "
     read numero
-    echo;
     if [ "$numero" -eq "$n" ]
     then
         return
     fi
+
     echo -e "\e[1;35m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m"
-    comando="${COMANDOS[$numero-1]}"
+    if [ "$tabla" == "filter" ]
+    then
+        comando="${COMANDOS_FILTER[$numero-1]}"
+    else
+        comando="${COMANDOS[$numero-1]}"
+    fi
 
     if [ "$comando" == "-L" ]
     then
@@ -325,7 +347,6 @@ seleccionarComando(){
         comando="$comando ${opcionesListado[@]}"
     fi
 
-    verificacionGeneral
 
     if [ "$modoVerboso" == true ]
     then
@@ -431,10 +452,18 @@ seleccionarParametros(){
     temp=""
     temp2=""
 
-    for i in "${PARAMETROS[@]}"; do
-        echo "$n: $i"
-        ((n+=1))
-    done
+    if [ "$tabla" == "raw" ] || [ "$tabla" == "security" ]
+    then
+        for i in "${PARAMETROS_GENERAL[@]}"; do
+            echo "$n: $i"
+            ((n+=1))
+        done
+    else
+        for i in "${PARAMETROS[@]}"; do
+            echo "$n: $i"
+            ((n+=1))
+        done
+    fi
     echo "$n: Volver"
     echo;
     echo -n "Opcion: "
@@ -475,11 +504,26 @@ seleccionarParametros(){
         read temp
         echo -n "Fin: "
         read temp2
-        temp="$temp:$temp2"
+
+        if [ "$temp" == "" ] || [ "$temp2" == "" ]
+        then
+            echo;
+            echo -e "${COLOR_WARNING}EL rango de puertos debe tener un valor inicial y final${COLOR_RESET}"
+            echo;
+            mensajeContinuacion "volver al menu principal"
+            return
+        fi
+        if [ "$temp" -gt "$temp2" ]
+        then
+            temp="$temp2:$temp"
+        else
+            temp="$temp:$temp2"
+        fi
 
     elif [ "$subNum" == 6 ]
     then
         echo "Elige una interfaz de entrada: "
+        echo;
         n=1
         for i in "${interfaces[@]}"; do
             echo "$n:$i"
@@ -492,6 +536,7 @@ seleccionarParametros(){
     elif [ "$subNum" == 7 ]
     then
         echo "Elige la interfaz de salida: "
+        echo;
         n=1
         for i in "${interfaces[@]}"; do
             echo "$n:$i"
@@ -504,6 +549,7 @@ seleccionarParametros(){
     elif [ "$subNum" == 8 ]
     then
         echo "Elige un módulo"
+        echo;
         n=1
         for i in "${MATCH_MODULES[@]}"; do
             echo "$n: $i"
@@ -528,7 +574,12 @@ seleccionarParametros(){
         read temp2
         temp="$temp ${ESTADOS_MM[$temp2-1]}"
     fi
-    parametros[$subNum-1]="${PARAMETROS[$subNum-1]} $temp"
+
+    if [ "$temp" != "" ]
+    then
+        parametros[$subNum-1]="${PARAMETROS[$subNum-1]} $temp"
+    fi
+    
 }
 
 
@@ -600,6 +651,16 @@ seleccionarAccion(){
 
 
 ejecutaComando(){
+    if [ "$tabla" == "" ] || [ "$comando" == "" ]
+    then
+        echo -e "${COLOR_BOLD}Ejeución de comandos${COLOR_RESET}"
+        echo;
+        echo -e "${COLOR_WARNING}Debes seleccionar una tabla y un comando para ejecución${COLOR_RESET}"
+        echo;
+        mensajeContinuacion "retornar"
+        return
+    fi
+
     comandoAEjecutar=$( echo "$1" | xargs)
     
     echo;
@@ -815,6 +876,8 @@ then
 fi
 
 while true; do
+
+    verificacionGeneral
     echo;
     if [ "$modoLimpio" == true ]
     then 
