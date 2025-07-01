@@ -4,4 +4,4 @@ descripcionesGuardadas=()
 esNuevo=false
 modoLimpio=true
 modoVerboso=true
-hayAdvertencias=false
+hayAdvertencias=true

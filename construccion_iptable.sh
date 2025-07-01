@@ -204,19 +204,19 @@ modoVerbosoCadena(){
 
     if [ $cadena == "INPUT" ]
     then
-        echo "Paquetes destinados al sistema local"
+        echo "Procesa paquetes que van dirigidos al sistema local."
     elif [ $cadena == "OUTPUT" ]
     then
-        echo "Paquetes originados en el sistema local"
+        echo "Procesa paquetes que se originan desde el sistema local hacia fuera."
     elif [ $cadena == "FORWARD" ]
     then
-        echo "Paquetes que atraviesan el sistema (routing)"
+        echo "Procesa paquetes que atraviesan el sistema (de una interfaz a otra)."
     elif [ $cadena == "PREROUTING" ]
     then
-        echo "Paquetes antes del routing"
+        echo "Procesa paquetes apenas llegan al sistema, antes de decidir su ruta."
     elif [ $cadena == "POSTROUTING" ]
     then
-        echo "Paquetes después del routing"
+        echo "Procesa paquetes justo antes de salir del sistema."
     fi
     echo;
     mensajeContinuacion "continuar"
@@ -675,6 +675,26 @@ ejecutaComando(){
     mensajeContinuacion "continuar"
 }
 
+resetearComando(){
+    if [ "$hayAdvertencias" == true ]
+    then
+        echo -e -n "${COLOR_WARNING}Se eliminará el comando actual ¿estás seguro? (s/n): ${COLOR_RESET}"
+        read resp
+        echo;
+        if [ "$resp" != "s" ]
+        then
+            return
+        fi
+    fi
+    
+    tabla="filter"; comando=""; cadena=""; posicionCadena=""; posicionCadenaTemp=""; parametros=(); accion=""; parametros=(); 
+    
+    echo;
+    echo "Se eliminó el comando actual"
+    echo;
+    mensajeContinuacion "continuar"
+}
+
 guardarComando(){
     echo -n "Dale una descipción a tu comando: "
     read descripcion
@@ -846,9 +866,7 @@ leerDocumentacion(){
         echo;
         echo -e "${COLOR_BOLD}Hooks de Netfilter:${COLOR_RESET}"
         echo "Puntos de la trayectoria de un paquete donde Netfilter permite que se apliquen reglas. Estos puntos incluyen:"
-
         echo "PREROUTING , INPUT, FORWARD, OUTPUT, POSTROUTING"
-
 
     echo;
     mensajeContinuacion "continuar"
@@ -909,11 +927,12 @@ echo
     #-j previamente
     # -j( ACCEPT, DROP, REJECT, LOG, REDIRECT, SNAT, DNAT)
     echo "6. Ejecutar comando"
-    echo "7. Guardar comando"
-    echo "8. Visualizar comandos guardados"
-    echo "9. Configurar entorno"
-    echo "10. Leer documentación"
-    echo "11. Salir del programa"
+    echo "7. Resetear comando"
+    echo "8. Guardar comando"
+    echo "9. Visualizar comandos guardados"
+    echo "10. Configurar entorno"
+    echo "11. Leer documentación"
+    echo "12. Salir del programa"
     echo;
     echo -e "\e[1;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m"
     echo -e "${COLOR_BOLD}comando actual:${COLOR_RESET} $comandoIpTables"
@@ -943,15 +962,18 @@ echo
             ejecutaComando "$comandoIpTables"
             ;;
         7)
-            guardarComando
+            resetearComando
             ;;
         8)
-            visualizarComandosGuardados
+            guardarComando
             ;;
         9)
-            configurarEntorno
+            visualizarComandosGuardados
             ;;
         10)
+            configurarEntorno
+            ;;
+        11)
             leerDocumentacion
             ;;
         *)
