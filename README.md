@@ -1,5 +1,10 @@
 # Documentación del programa
 
+## Descripción del programa
+
+Este programa está diseñado para ayudarte a construir reglas de iptables sin necesidad de memorizar su sintaxis complicada cada vez.
+Con un menú detallado, podrás construir reglas paso a paso
+
 ## Descripción de archivos
 
 ### construccion_iptable.sh - Archivo principal
@@ -13,3 +18,7 @@ Archivo de configuración que guarda los datos de la última ejecución del prog
 ### examples.sh - Archivo de ejemplos
 
 Simples ejemplos de uso del programa.
+
+## metas
+
+- Lograr que no sea posible ejecutar reglas sin sentido automatizando el proceso de construcción de reglas.
