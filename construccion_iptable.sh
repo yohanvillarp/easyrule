@@ -70,11 +70,11 @@ bienvenido (){
 
     echo "Bienvenido"
     # Descripción del programa
-    echo -e "\e[36mEste programa está diseñado para ayudarte a construir comandos de iptables"
+    echo -e "\e[36mEste programa está diseñado para ayudarte a construir reglas de iptables"
     echo "sin necesidad de memorizar su sintaxis complicada cada vez."
     echo
     echo -e "\e[36m✔️  Puedes construir reglas paso a paso."
-    echo -e "✔️  Guardar tus comandos personalizados para usarlos más adelante."
+    echo -e "✔️  Guardar tus reglas personalizados para usarlos más adelante."
     echo -e "✔️  Revisar o ejecutar reglas guardadas en cualquier momento.\e[0m"
     echo
 
@@ -265,7 +265,7 @@ seleccionarTabla(){
         echo "$n: $i"
         ((n+=1))
     done
-    echo "$n: Volver"
+    echo "$n: Volver al menu principal"
     echo;
     echo -n "Opcion: "
     read numero
@@ -298,7 +298,7 @@ seleccionarComando(){
         done
     fi
 
-    echo "$n: Volver"
+    echo "$n: Volver al menu principal"
     echo;
     echo;
     echo -n "Opcion: "
@@ -326,7 +326,7 @@ seleccionarComando(){
         done
         echo "$n: ninguna"
         ((n+=1))
-        echo "$n: Volver"
+        echo "$n: Volver al menu principal"
         echo;
         echo -n "Opcion: "
         read numero
@@ -405,7 +405,7 @@ seleccionarCadena(){
         done
         CADENAS=("${CADENAS_SECURITY[@]}")
     fi
-    echo "$n: Volver"
+    echo "$n: Volver al menu principal"
     echo;
     echo -n "Opcion: "
     read numero
@@ -464,7 +464,7 @@ seleccionarParametros(){
             ((n+=1))
         done
     fi
-    echo "$n: Volver"
+    echo "$n: Volver al menu principal"
     echo;
     echo -n "Opcion: "
     read subNum
@@ -555,7 +555,7 @@ seleccionarParametros(){
             echo "$n: $i"
             ((n+=1))
         done
-        echo "$n: Volver"
+        echo "$n: Volver al menu principal"
         echo;
         echo -n "Opcion: "
         read temp
@@ -568,7 +568,7 @@ seleccionarParametros(){
             echo "$n: $i"
             ((n+=1))
         done
-        echo "$n: Volver"
+        echo "$n: Volver al menu principal"
         echo;
         echo -n "Opcion: "
         read temp2
@@ -633,7 +633,7 @@ seleccionarAccion(){
         done
         ACCIONES=("${ACCIONES_RAW[@]}")
     fi
-    echo "$n: Volver"
+    echo "$n: Volver al menu principal"
     echo;
     echo -n "Opcion: "
     read numero
@@ -650,10 +650,10 @@ seleccionarAccion(){
 }
 
 
-ejecutaComando(){
+ejecutaRegla(){
     if [ "$tabla" == "" ] || [ "$comando" == "" ]
     then
-        echo -e "${COLOR_BOLD}Ejeución de comandos${COLOR_RESET}"
+        echo -e "${COLOR_BOLD}Ejeución de reglas${COLOR_RESET}"
         echo;
         echo -e "${COLOR_WARNING}Debes seleccionar una tabla y un comando para ejecución${COLOR_RESET}"
         echo;
@@ -668,17 +668,17 @@ ejecutaComando(){
     then
         clear
     fi
-    echo -e "\e[32mEjecutando comando $comandoAEjecutar\e[0m"
+    echo -e "\e[32mEjecutando regla $comandoAEjecutar\e[0m"
     echo;
     sudo bash -c "$comandoAEjecutar"
     echo;
     mensajeContinuacion "continuar"
 }
 
-resetearComando(){
+resetearRegla(){
     if [ "$hayAdvertencias" == true ]
     then
-        echo -e -n "${COLOR_WARNING}Se eliminará el comando actual ¿estás seguro? (s/n): ${COLOR_RESET}"
+        echo -e -n "${COLOR_WARNING}Se eliminará la regla actual ¿estás seguro? (s/n): ${COLOR_RESET}"
         read resp
         echo;
         if [ "$resp" != "s" ]
@@ -690,18 +690,28 @@ resetearComando(){
     tabla="filter"; comando=""; cadena=""; posicionCadena=""; posicionCadenaTemp=""; parametros=(); accion=""; parametros=(); 
     
     echo;
-    echo "Se eliminó el comando actual"
+    echo "Se eliminó la regla actual"
     echo;
     mensajeContinuacion "continuar"
 }
 
-guardarComando(){
-    echo -n "Dale una descipción a tu comando: "
+guardarRegla(){
+    if [ "$tabla" == "" ] || [ "$comando" == "" ]
+    then
+        echo -e "${COLOR_BOLD}Guardar regla${COLOR_RESET}"
+        echo;
+        echo -e "${COLOR_WARNING}Debes seleccionar una tabla y un comando para guardar la regla${COLOR_RESET}"
+        echo;
+        mensajeContinuacion "volver al menu principal"
+        return
+    fi
+
+    echo -n "Dale una descipción a tu regla: "
     read descripcion
-    comandosGuardados[${#comandosGuardados[@]}]="$comandoIpTables"
+    reglasGuardadas[${#reglasGuardadas[@]}]="$reglaIpTables"
     descripcionesGuardadas[${#descripcionesGuardadas[@]}]="$descripcion"
     reconstruirDatosGuardados
-    echo "comando $comandoIpTables guardado"
+    echo "regla $reglaIpTables guardada"
 }
 
 cargarDatosGuardados(){
@@ -715,9 +725,9 @@ cargarDatosGuardados(){
 
 reconstruirDatosGuardados(){
     echo '#!/bin/bash' > config_construccion.sh
-    echo -n 'comandosGuardados=(' >> config_construccion.sh
+    echo -n 'reglasGuardadas=(' >> config_construccion.sh
 
-    for cmd in "${comandosGuardados[@]}"; do
+    for cmd in "${reglasGuardadas[@]}"; do
         echo -n "\"$cmd\" " >> config_construccion.sh
     done
 
@@ -746,19 +756,19 @@ reconstruirDatosGuardados(){
     fi
 }
 
-visualizarComandosGuardados(){
-    echo "Comandos guardados"
+visualizarReglasGuardados(){
+    echo "Reglas guardadas"
     n=1
     echo;
-    for i in "${comandosGuardados[@]}"; do
+    for i in "${reglasGuardadas[@]}"; do
         echo "## $n: "
-        echo "Comando: $i"
+        echo "Regla: $i"
         echo "Descripción: ${descripcionesGuardadas[$n-1]}"
         ((n+=1))
         echo;
     done
     
-    echo "##$n. Volver"; 
+    echo "$n. Volver"; 
     echo;
     echo -n "Opcion: "
     read numero
@@ -766,7 +776,7 @@ visualizarComandosGuardados(){
     then
         return
     fi
-    ejecutaComando "${comandosGuardados[$numero-1]}"
+    ejecutaRegla "${reglasGuardadas[$numero-1]}"
     
 }
 
@@ -777,6 +787,7 @@ configurarEntorno(){
     echo "1. Modo limpio : $modoLimpio"
     echo "2. Modo verboso : $modoVerboso"
     echo "3. Hay advertencias : $hayAdvertencias"
+    echo "4. Volver al menu principal"
     echo;
     echo -n "Opcion: "
     read numero
@@ -872,15 +883,15 @@ leerDocumentacion(){
     mensajeContinuacion "continuar"
 }
 
-construirComando(){
-    comandoIpTables="iptables -t $tabla $comando $cadena $posicionCadena"
+construirRegla(){
+    reglaIpTables="iptables -t $tabla $comando $cadena $posicionCadena"
     for i in "${parametros[@]}"; do
-        comandoIpTables="$comandoIpTables $i"
+        reglaIpTables="$reglaIpTables $i"
     done
-    comandoIpTables="$comandoIpTables $accion"
+    reglaIpTables="$reglaIpTables $accion"
 
     #quita espacios innecesarios
-    comandoIpTables=$( echo "$comandoIpTables" | xargs)
+    reglaIpTables=$( echo "$reglaIpTables" | xargs)
 }
 
 #------------------------------------------------------------------------------
@@ -902,11 +913,11 @@ while true; do
         clear
     fi
     
-    construirComando
+    construirRegla
 
-    echo -e "\e[1;33m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m"
-    echo -e "\e[1;35m🛡️  Creado para ayudarte, construye tu comando\e[0m"
-    echo -e "\e[1;33m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m"
+    echo -e "\e[1;33m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m"
+    echo -e "\e[1;35m🛡️  Creado para ayudarte, construye tu regla iptables\e[0m"
+    echo -e "\e[1;33m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m"
 echo
 
     echo "sintaxis: $sintaxisIpTables"
@@ -926,16 +937,16 @@ echo
     echo "5. Seleccionar acción"
     #-j previamente
     # -j( ACCEPT, DROP, REJECT, LOG, REDIRECT, SNAT, DNAT)
-    echo "6. Ejecutar comando"
-    echo "7. Resetear comando"
-    echo "8. Guardar comando"
-    echo "9. Visualizar comandos guardados"
+    echo "6. Ejecutar regla"
+    echo "7. Resetear regla"
+    echo "8. Guardar regla"
+    echo "9. Visualizar reglas guardados"
     echo "10. Configurar entorno"
     echo "11. Leer documentación"
     echo "12. Salir del programa"
     echo;
     echo -e "\e[1;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m"
-    echo -e "${COLOR_BOLD}comando actual:${COLOR_RESET} $comandoIpTables"
+    echo -e "${COLOR_BOLD}Regla actual:${COLOR_RESET} $reglaIpTables"
     echo -e "\e[1;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m"
     echo;
     echo -n "Ingresa un número por favor: "
@@ -959,16 +970,16 @@ echo
             seleccionarAccion
             ;;
         6)
-            ejecutaComando "$comandoIpTables"
+            ejecutaRegla "$reglaIpTables"
             ;;
         7)
-            resetearComando
+            resetearRegla
             ;;
         8)
-            guardarComando
+            guardarRegla
             ;;
         9)
-            visualizarComandosGuardados
+            visualizarReglasGuardados
             ;;
         10)
             configurarEntorno

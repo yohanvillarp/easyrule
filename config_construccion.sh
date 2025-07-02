@@ -1,6 +1,6 @@
 #!/bin/bash
-comandosGuardados=()
-descripcionesGuardadas=()
+reglasGuardadas=("iptables -t filter" )
+descripcionesGuardadas=("hola" )
 esNuevo=false
 modoLimpio=true
 modoVerboso=true
