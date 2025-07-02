@@ -715,44 +715,44 @@ guardarRegla(){
 }
 
 cargarDatosGuardados(){
-    if [ -f config_construccion.sh ]
+    if [ -f config.sh ]
     then
         return;
     fi
-    touch config_construccion.sh
+    touch config.sh
     reconstruirDatosGuardados
 }
 
 reconstruirDatosGuardados(){
-    echo '#!/bin/bash' > config_construccion.sh
-    echo -n 'reglasGuardadas=(' >> config_construccion.sh
+    echo '#!/bin/bash' > config.sh
+    echo -n 'reglasGuardadas=(' >> config.sh
 
     for cmd in "${reglasGuardadas[@]}"; do
-        echo -n "\"$cmd\" " >> config_construccion.sh
+        echo -n "\"$cmd\" " >> config.sh
     done
 
-    echo ')' >> config_construccion.sh
+    echo ')' >> config.sh
 
-    echo -n 'descripcionesGuardadas=(' >> config_construccion.sh
+    echo -n 'descripcionesGuardadas=(' >> config.sh
 
     for cmd in "${descripcionesGuardadas[@]}"; do
-        echo -n "\"$cmd\" " >> config_construccion.sh
+        echo -n "\"$cmd\" " >> config.sh
     done
 
-    echo ')' >> config_construccion.sh
+    echo ')' >> config.sh
 
     
     if [ "$esNuevo" == "" ]
     then
-        echo "esNuevo=true" >> config_construccion.sh
-        echo "modoLimpio=false" >> config_construccion.sh
-        echo "modoVerboso=true" >> config_construccion.sh
-        echo "hayAdvertencias=true" >> config_construccion.sh
+        echo "esNuevo=true" >> config.sh
+        echo "modoLimpio=false" >> config.sh
+        echo "modoVerboso=true" >> config.sh
+        echo "hayAdvertencias=true" >> config.sh
     else
-        echo "esNuevo=$esNuevo" >> config_construccion.sh
-        echo "modoLimpio=$modoLimpio" >> config_construccion.sh
-        echo "modoVerboso=$modoVerboso" >> config_construccion.sh
-        echo "hayAdvertencias=$hayAdvertencias" >> config_construccion.sh
+        echo "esNuevo=$esNuevo" >> config.sh
+        echo "modoLimpio=$modoLimpio" >> config.sh
+        echo "modoVerboso=$modoVerboso" >> config.sh
+        echo "hayAdvertencias=$hayAdvertencias" >> config.sh
     fi
 }
 
@@ -896,7 +896,7 @@ construirRegla(){
 
 #------------------------------------------------------------------------------
 cargarDatosGuardados
-source ./config_construccion.sh
+source ./config.sh
 if [ "$esNuevo" == true ]
 then
     bienvenido
