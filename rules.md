@@ -25,6 +25,7 @@ iptables [-t TABLA] COMANDO CADENA [OPCIONES] [-j ACCIÓN]
 
 ### Solución
 - 1.creación de constante OPCIONES_COMANDO_L=("-n" "--line-numbers" "-v")
+- 2. Ya se omite
 - 3.Ya es valido en todas las tablas
 
 ### Comando `-I` (insertar)
@@ -33,6 +34,7 @@ iptables [-t TABLA] COMANDO CADENA [OPCIONES] [-j ACCIÓN]
 
 ### Solución
 - 1. Ya existe la logica necesaria
+- 2. Logica ya implementada
 
 ### Comando `-D` (borrar)
 - Puede aceptar:
@@ -104,6 +106,9 @@ iptables [-t TABLA] COMANDO CADENA [OPCIONES] [-j ACCIÓN]
 
 - Solo pueden usarse si se especifica previamente `-p` con valor `tcp` o `udp`
 
+## Solución
+1. Creación de constante de OPCIONES_CONDICIONALES_P=("--dport" "--sport")
+2. Solucionado
 
 ---
 
@@ -127,4 +132,6 @@ iptables [-t TABLA] COMANDO CADENA [OPCIONES] [-j ACCIÓN]
 - FORWARD
 - No debe usarse en otras tablas ni con otras cadenas
 
+## Solución
+- Solucionado
 ---

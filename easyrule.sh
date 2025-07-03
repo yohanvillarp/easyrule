@@ -24,10 +24,12 @@ CADENAS_RAW=("PREROUTING" "OUTPUT")
 CADENAS_SECURITY=("INPUT" "FORWARD" "OUTPUT")
 
 #Separación temporal
-OPCIONES_GENERAL=("-s" "-d" "-p" "--dport" "--sport" "-i" "-o")
+OPCIONES_GENERAL=("-s" "-d" "-p" "-i" "-o")
 OPCIONES_COMANDO_L=("-n" "--line-numbers" "-v")
-OPCIONES_=("-s" "-d" "-p" "--dport" "--sport" "-i" "-o")
+OPCIONES_=("-s" "-d" "-p" "-i" "-o")
+OPCIONES_CONDICIONALES_P=("--dport" "--sport")
 OPCIONES=("${OPCIONES_GENERAL[@]}" "-m")
+
 #Para -m
 MATCH_MODULES=("state --state" "conntrack --ctstate")
 ESTADOS_MM=("NEW" "ESTABLISHED" "RELATED" "INVALID")
@@ -316,38 +318,6 @@ seleccionarComando(){
         comando="${COMANDOS[$numero-1]}"
     fi
 
-    if [ "$comando" == "-L" ]
-    then
-        echo "Selecciona opciones de listado"
-        n=1
-        for i in "${OPCIONES_COMANDO_L[@]}"; do
-            echo "$n: $i"
-            ((n+=1))
-        done
-        echo "$n: ninguna"
-        ((n+=1))
-        echo "$n: Volver al menu principal"
-        echo;
-        echo -n "Opcion: "
-        read numero
-        if [ "$numero" -eq "$n" ]
-        then
-            return
-        fi
-
-        echo "valor de n: $n"
-        if [ "$numero" -eq "$((n-1))" ]
-        then
-            opcionesListado=()
-        else
-            opcionesListado[$numero-1]="${OPCIONES_COMANDO_L[$numero-1]}"
-            echo "${OPCIONES_COMANDO_L[$numero-1]}"
-        fi
-
-        comando="$comando ${opcionesListado[@]}"
-    fi
-
-
     if [ "$modoVerboso" == true ]
     then
         modoVerbosoComando
@@ -436,11 +406,11 @@ seleccionarCadena(){
     
 }
 
-seleccionarParametros(){
+seleccionarOpciones(){
 
     if [ "$comando" == "" ]
     then
-        echo "Sin una cadena, no es posible asignar opciones"
+        echo "Sin un comando, no es posible asignar opciones"
         echo;
         mensajeContinuacion "volver al menu principal"
         return
@@ -452,7 +422,14 @@ seleccionarParametros(){
     temp=""
     temp2=""
 
-    if [ "$tabla" == "raw" ] || [ "$tabla" == "security" ]
+    if [ "$comando" == "-L" ]
+    then
+        n=1
+        for i in "${OPCIONES_COMANDO_L[@]}"; do
+            echo "$n: $i"
+            ((n+=1))
+        done
+    elif [ "$tabla" == "raw" ] || [ "$tabla" == "security" ]
     then
         for i in "${OPCIONES_GENERAL[@]}"; do
             echo "$n: $i"
@@ -464,10 +441,18 @@ seleccionarParametros(){
             ((n+=1))
         done
     fi
+    
     echo "$n: Volver al menu principal"
     echo;
     echo -n "Opcion: "
     read subNum
+
+    if [ "$comando" == "-L" ]
+    then
+        opciones[$subNum-1]="${OPCIONES_COMANDO_L[subNum-1]}"
+        return
+    fi
+            
 
     if [ "$subNum" -eq "$n" ]
     then
@@ -495,33 +480,6 @@ seleccionarParametros(){
         temp=${PROTOCOLOS[$temp-1]}
     elif [ "$subNum" == 4 ]
     then
-        echo -n "Ingresa puerto/s de destino: "
-        read temp
-    elif [ "$subNum" == 5 ]
-    then
-        echo "Ingresa rango de puertos de origen"
-        echo -n "Inicio: "
-        read temp
-        echo -n "Fin: "
-        read temp2
-
-        if [ "$temp" == "" ] || [ "$temp2" == "" ]
-        then
-            echo;
-            echo -e "${COLOR_WARNING}EL rango de puertos debe tener un valor inicial y final${COLOR_RESET}"
-            echo;
-            mensajeContinuacion "volver al menu principal"
-            return
-        fi
-        if [ "$temp" -gt "$temp2" ]
-        then
-            temp="$temp2:$temp"
-        else
-            temp="$temp:$temp2"
-        fi
-
-    elif [ "$subNum" == 6 ]
-    then
         echo "Elige una interfaz de entrada: "
         echo;
         n=1
@@ -533,7 +491,7 @@ seleccionarParametros(){
         echo -n "Opcion: "
         read temp
         temp=${interfaces[$temp-1]}
-    elif [ "$subNum" == 7 ]
+    elif [ "$subNum" == 5 ]
     then
         echo "Elige la interfaz de salida: "
         echo;
@@ -546,7 +504,7 @@ seleccionarParametros(){
         echo -n "Opcion: "
         read temp
         temp=${interfaces[(($temp-1))]}
-    elif [ "$subNum" == 8 ]
+    elif [ "$subNum" == 6 ]
     then
         echo "Elige un módulo"
         echo;
@@ -580,6 +538,60 @@ seleccionarParametros(){
         temp="$temp ${ESTADOS_MM[$temp2-1]}"
     fi
 
+    
+    
+    # Opciones condicionales -p
+    n=1;
+    if [ "$subNum" == 3 ]
+    then
+        echo;
+        echo "Selecciona opciones condicionales"
+        echo;
+        for i in "${OPCIONES_CONDICIONALES_P[@]}"; do
+            echo "$n: $i"
+            ((n+=1))
+        done
+        echo "$n: ninguno"
+        echo;
+        echo -n "Opcion: "
+        read numero
+
+        if [ "$numero" == 1 ]
+        then
+            echo -n "Ingresa puerto/s de destino: "
+            read temp2
+        elif [ "$numero" == 2 ]
+        then
+            echo "Ingresa rango de puertos de origen"
+            echo -n "Inicio: "
+            read puerto1
+            echo -n "Fin: "
+            read puerto2
+
+            # Validación de puertos
+            if [ "$puerto1" == "" ] || [ "$puerto2" == "" ]
+            then
+                echo;
+                echo -e "${COLOR_WARNING}EL rango de puertos debe tener un valor inicial y final${COLOR_RESET}"
+                echo;
+                mensajeContinuacion "volver al menu principal"
+                return
+            fi
+
+            if [ "$puerto1" -gt "$puerto2" ]
+            then
+                temp2="$puerto2:$puerto1"
+            else
+                temp2="$puerto1:$puerto2"
+            fi
+
+            
+        fi
+        
+        temp="$temp ${OPCIONES_CONDICIONALES_P[$numero-1]} $temp2"
+    fi
+
+    # Aplicación de opcion en la posición adecuada
     if [ "$temp" != "" ]
     then
         opciones[$subNum-1]="${OPCIONES[$subNum-1]} $temp"
@@ -969,7 +981,7 @@ echo
             seleccionarCadena
             ;;
         4)
-            seleccionarParametros
+            seleccionarOpciones
             ;;
         5)
             seleccionarAccion
