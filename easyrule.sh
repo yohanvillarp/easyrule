@@ -939,6 +939,9 @@ echo
 
     echo "sintaxis: $SINTAXIS_IPTABLES"
     echo;
+    echo -e "\e[1;31m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m"
+    echo "Construcción de regla"
+    echo -e "\e[1;31m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m"
     echo "1. Seleccionar tabla"
     #filter, nat, mangle, raw, security
     echo "2. Seleccionar comando"
@@ -949,17 +952,23 @@ echo
     # mangle: PREROUTING, INPUT, FORWARD, OUTPUT, POSTROUTING
     #raw: PREROUTING, OUTPUT 
     #security: INPUT, FORWARD, OUTPUT
-    echo "4. Seleccionar opciones"
+    echo "4. Definir opciones"
     #-s direcciónIp -s redOrigen -d ipDestino -p tcp -p udp -p icmp --dport puertoDestino --sport rangoPuertosOrigen --dport multiplesPuertos -i interfazEntrada -o interfazSalida  
-    echo "5. Seleccionar acción"
+    echo "5. Definir acción"
     #-j previamente
     # -j( ACCEPT, DROP, REJECT, LOG, REDIRECT, SNAT, DNAT)
+    echo -e "\e[1;31m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m"
+    echo "Acciones sobre la regla"
+    echo -e "\e[1;31m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m"
     echo "6. Ejecutar regla"
-    echo "7. Resetear regla"
+    echo "7. Resetear regla actual"
     echo "8. Guardar regla"
-    echo "9. Visualizar reglas guardados"
+    echo "9. Mostrar reglas guardados"
+    echo -e "\e[1;31m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m"
+    echo "Opciones adicionales"
+    echo -e "\e[1;31m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m"
     echo "10. Configurar entorno"
-    echo "11. Leer documentación"
+    echo "11. Ver documentación"
     echo "12. Salir del programa"
     echo;
     echo -e "\e[1;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m"
