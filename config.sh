@@ -2,6 +2,6 @@
 reglasGuardadas=()
 descripcionesGuardadas=()
 esNuevo=false
-modoLimpio=false
+modoLimpio=true
 modoVerboso=true
 hayAdvertencias=true

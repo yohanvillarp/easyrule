@@ -4,9 +4,9 @@
 tabla="filter"
 comando=""
 cadena=""
-parametros=("" "" "" "" "" "" "" "")
+opciones=("" "" "" "" "" "" "" "")
 accion=""
-sintaxisIpTables="iptables [-t tabla] -comando cadena [opciones] -j acción"
+SINTAXIS_IPTABLES="iptables [-t tabla] -COMANDO CADENA [opciones] [-j ACCIÓN]"
 interfaces=($(ip -o link show | awk -F': ' '{print $2}'))
 opcionesListado=()
 posicionCadena=""
@@ -24,14 +24,17 @@ CADENAS_RAW=("PREROUTING" "OUTPUT")
 CADENAS_SECURITY=("INPUT" "FORWARD" "OUTPUT")
 
 #Separación temporal
-PARAMETROS_GENERAL=("-s" "-d" "-p" "--dport" "--sport" "-i" "-o")
-PARAMETROS=("${PARAMETROS_GENERAL[@]}" "-m")
+OPCIONES_GENERAL=("-s" "-d" "-p" "--dport" "--sport" "-i" "-o")
+OPCIONES_COMANDO_L=("-n" "--line-numbers" "-v")
+OPCIONES_=("-s" "-d" "-p" "--dport" "--sport" "-i" "-o")
+OPCIONES=("${OPCIONES_GENERAL[@]}" "-m")
 #Para -m
 MATCH_MODULES=("state --state" "conntrack --ctstate")
 ESTADOS_MM=("NEW" "ESTABLISHED" "RELATED" "INVALID")
 
 PROTOCOLOS=("tcp" "udp" "icmp")
 
+# Acciones
 ACCIONES_FILTER=("ACCEPT" "DROP" "REJECT" "LOG")
 #ACCIONES_NAT=("SNAT" "DNAT" "REDIRECT")
 #ACCIONES_MANGLE=("MARK" "ACCEPT" "DROP" "LOG")
@@ -39,9 +42,6 @@ ACCIONES_MANGLE=("ACCEPT" "DROP" "LOG")
 ACCIONES_RAW=("NOTRACK")
 #utiles con modulos de seguridad
 #ACCIONES_SECURITY=()
-
-#para listado de reglas
-OPCIONES_LISTADO=("-n" "--line-numbers")
 
 #Personalización
 # Colores ANSI (constantes)
@@ -320,7 +320,7 @@ seleccionarComando(){
     then
         echo "Selecciona opciones de listado"
         n=1
-        for i in "${OPCIONES_LISTADO[@]}"; do
+        for i in "${OPCIONES_COMANDO_L[@]}"; do
             echo "$n: $i"
             ((n+=1))
         done
@@ -340,8 +340,8 @@ seleccionarComando(){
         then
             opcionesListado=()
         else
-            opcionesListado[$numero-1]="${OPCIONES_LISTADO[$numero-1]}"
-            echo "${OPCIONES_LISTADO[$numero-1]}"
+            opcionesListado[$numero-1]="${OPCIONES_COMANDO_L[$numero-1]}"
+            echo "${OPCIONES_COMANDO_L[$numero-1]}"
         fi
 
         comando="$comando ${opcionesListado[@]}"
@@ -440,13 +440,13 @@ seleccionarParametros(){
 
     if [ "$comando" == "" ]
     then
-        echo "Sin una cadena, no es posible asignar parámetros"
+        echo "Sin una cadena, no es posible asignar opciones"
         echo;
         mensajeContinuacion "volver al menu principal"
         return
     fi
 
-    echo "Selecciona parametros"
+    echo "Selecciona opciones"
     echo;
     n=1
     temp=""
@@ -454,12 +454,12 @@ seleccionarParametros(){
 
     if [ "$tabla" == "raw" ] || [ "$tabla" == "security" ]
     then
-        for i in "${PARAMETROS_GENERAL[@]}"; do
+        for i in "${OPCIONES_GENERAL[@]}"; do
             echo "$n: $i"
             ((n+=1))
         done
     else
-        for i in "${PARAMETROS[@]}"; do
+        for i in "${OPCIONES[@]}"; do
             echo "$n: $i"
             ((n+=1))
         done
@@ -572,12 +572,17 @@ seleccionarParametros(){
         echo;
         echo -n "Opcion: "
         read temp2
+
+        if [ "$temp2" == "" ] || [ "$temp2" -lt 0 ] || [ "$temp2" -ge "$n" ]
+        then
+            return
+        fi
         temp="$temp ${ESTADOS_MM[$temp2-1]}"
     fi
 
     if [ "$temp" != "" ]
     then
-        parametros[$subNum-1]="${PARAMETROS[$subNum-1]} $temp"
+        opciones[$subNum-1]="${OPCIONES[$subNum-1]} $temp"
     fi
     
 }
@@ -687,7 +692,7 @@ resetearRegla(){
         fi
     fi
     
-    tabla="filter"; comando=""; cadena=""; posicionCadena=""; posicionCadenaTemp=""; parametros=(); accion=""; parametros=(); 
+    tabla="filter"; comando=""; cadena=""; posicionCadena=""; posicionCadenaTemp=""; opciones=(); accion=""; opciones=(); 
     
     echo;
     echo "Se eliminó la regla actual"
@@ -885,7 +890,7 @@ leerDocumentacion(){
 
 construirRegla(){
     reglaIpTables="iptables -t $tabla $comando $cadena $posicionCadena"
-    for i in "${parametros[@]}"; do
+    for i in "${opciones[@]}"; do
         reglaIpTables="$reglaIpTables $i"
     done
     reglaIpTables="$reglaIpTables $accion"
@@ -920,7 +925,7 @@ while true; do
     echo -e "\e[1;33m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m"
 echo
 
-    echo "sintaxis: $sintaxisIpTables"
+    echo "sintaxis: $SINTAXIS_IPTABLES"
     echo;
     echo "1. Seleccionar tabla"
     #filter, nat, mangle, raw, security
@@ -932,7 +937,7 @@ echo
     # mangle: PREROUTING, INPUT, FORWARD, OUTPUT, POSTROUTING
     #raw: PREROUTING, OUTPUT 
     #security: INPUT, FORWARD, OUTPUT
-    echo "4. Seleccionar parámetros"
+    echo "4. Seleccionar opciones"
     #-s direcciónIp -s redOrigen -d ipDestino -p tcp -p udp -p icmp --dport puertoDestino --sport rangoPuertosOrigen --dport multiplesPuertos -i interfazEntrada -o interfazSalida  
     echo "5. Seleccionar acción"
     #-j previamente
